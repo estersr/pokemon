@@ -33,8 +33,12 @@ final class PokedexViewModel {
         searchText.trimmingCharacters(in: .whitespaces).lowercased()
     }
 
-    private let service = PokeAPIService.shared
+    private let service: any PokemonDataSource
     private let pageSize = 40
+
+    init(dataSource: any PokemonDataSource = PokeAPIService.shared) {
+        self.service = dataSource
+    }
 
     private var offset = 0
     private var roster: [PokemonSummary] = []

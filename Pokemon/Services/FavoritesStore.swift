@@ -24,8 +24,13 @@ final class FavoritesStore {
     private var undoDismissTask: Task<Void, Never>?
     private static let storageKey = "favoritePokemon"
 
-    init() {
-        if let data = UserDefaults.standard.data(forKey: Self.storageKey),
+    private let defaults: UserDefaults
+    private let dataSource: any PokemonDataSource
+
+    init(defaults: UserDefaults = .standard, dataSource: any PokemonDataSource = PokeAPIService.shared) {
+        self.defaults = defaults
+        self.dataSource = dataSource
+        if let data = defaults.data(forKey: Self.storageKey),
            let saved = try? JSONDecoder().decode([PokemonCardModel].self, from: data) {
             favorites = saved
         }
@@ -75,12 +80,12 @@ final class FavoritesStore {
     }
 
     private func cacheForOffline(_ card: PokemonCardModel) {
-        Task {
-            guard let detail = try? await PokeAPIService.shared.detail(for: card.id) else { return }
-            let species = try? await PokeAPIService.shared.species(for: card.id)
+        Task { [dataSource] in
+            guard let detail = try? await dataSource.detail(for: card.id) else { return }
+            let species = try? await dataSource.species(for: card.id)
             var evolution: [EvolutionStage] = []
             if let chainURL = species?.evolutionChain?.url {
-                evolution = (try? await PokeAPIService.shared.evolutionStages(fromChainURL: chainURL)) ?? []
+                evolution = (try? await dataSource.evolutionStages(fromChainURL: chainURL)) ?? []
             }
             await DetailDiskCache.shared.save(
                 CachedDetailBundle(detail: detail, species: species, evolution: evolution)
@@ -99,6 +104,6 @@ final class FavoritesStore {
 
     private func save() {
         guard let data = try? JSONEncoder().encode(favorites) else { return }
-        UserDefaults.standard.set(data, forKey: Self.storageKey)
+        defaults.set(data, forKey: Self.storageKey)
     }
 }

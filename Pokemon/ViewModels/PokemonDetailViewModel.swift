@@ -21,10 +21,11 @@ final class PokemonDetailViewModel {
     private(set) var errorMessage: String?
     private(set) var isShowingCachedData = false
 
-    private let service = PokeAPIService.shared
+    private let service: any PokemonDataSource
 
-    init(card: PokemonCardModel) {
+    init(card: PokemonCardModel, dataSource: any PokemonDataSource = PokeAPIService.shared) {
         self.card = card
+        self.service = dataSource
     }
 
     var currentCard: PokemonCardModel {
