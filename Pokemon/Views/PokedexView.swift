@@ -11,6 +11,9 @@ struct PokedexView: View {
     @Bindable var viewModel: PokedexViewModel
     let onSelect: (PokemonCardModel) -> Void
 
+    @Binding var showBackToTop: Bool
+    @Binding var scrollPosition: ScrollPosition
+
     @AppStorage("appTheme") private var themeRawValue = AppTheme.system.rawValue
 
     private let columns = [GridItem(.adaptive(minimum: 160, maximum: 240), spacing: 16)]
@@ -91,6 +94,16 @@ struct PokedexView: View {
             }
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)
+            .scrollPosition($scrollPosition)
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentOffset.y > 600
+            } action: { _, isFarDown in
+                if showBackToTop != isFarDown {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        showBackToTop = isFarDown
+                    }
+                }
+            }
         }
     }
 

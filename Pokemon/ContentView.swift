@@ -11,6 +11,9 @@ struct ContentView: View {
     @State private var favorites = FavoritesStore()
     @State private var pokedexViewModel = PokedexViewModel()
     @State private var selectedPokemon: PokemonCardModel?
+    @State private var selectedTab = 0
+    @State private var showBackToTop = false
+    @State private var galleryScrollPosition = ScrollPosition()
 
     @AppStorage("appTheme") private var themeRawValue = AppTheme.system.rawValue
 
@@ -20,18 +23,46 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            TabView {
-                PokedexView(viewModel: pokedexViewModel, onSelect: select)
-                    .tabItem {
-                        Label("Pokédex", systemImage: "square.grid.2x2")
-                    }
+            TabView(selection: $selectedTab) {
+                PokedexView(
+                    viewModel: pokedexViewModel,
+                    onSelect: select,
+                    showBackToTop: $showBackToTop,
+                    scrollPosition: $galleryScrollPosition
+                )
+                .tabItem {
+                    Label("Pokédex", systemImage: "square.grid.2x2")
+                }
+                .tag(0)
                 FavoritesView(onSelect: select)
                     .tabItem {
                         Label("Favorites", systemImage: "heart")
                     }
+                    .tag(1)
             }
             .blur(radius: selectedPokemon == nil ? 0 : 8)
             .accessibilityHidden(selectedPokemon != nil)
+
+            // Floats in the free space beside the tab bar capsule.
+            if selectedTab == 0, showBackToTop, selectedPokemon == nil {
+                Button {
+                    withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+                        galleryScrollPosition.scrollTo(edge: .top)
+                    }
+                } label: {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.primary)
+                        .padding(8)
+                }
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .padding(.trailing, 36)
+                .offset(y: 6)
+                .transition(.scale.combined(with: .opacity))
+                .accessibilityLabel("Back to top")
+            }
 
             if let card = selectedPokemon {
                 Color.black.opacity(0.4)
