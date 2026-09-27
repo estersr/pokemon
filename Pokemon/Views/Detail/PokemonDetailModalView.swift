@@ -125,8 +125,11 @@ struct PokemonDetailModalView: View {
                     Text(viewModel.card.formattedNumber)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
-                    Text(viewModel.card.displayName)
-                        .font(.title2.bold())
+                    HStack(spacing: 8) {
+                        Text(viewModel.card.displayName)
+                            .font(.title2.bold())
+                        AnimatedSpriteView(pokemonID: viewModel.card.id, size: 36)
+                    }
                     HStack(spacing: 6) {
                         ForEach(types) { type in
                             TypeChipView(type: type)

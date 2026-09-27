@@ -73,6 +73,10 @@ struct ContentView: View {
     private func select(_ card: PokemonCardModel) {
         dismissKeyboard()
         selectedPokemon = card
+        // Warm the animated sprite while the modal animates open.
+        if let url = AnimatedSpriteView.spriteURL(for: card.id) {
+            Task { _ = try? await ImageCache.shared.gifData(for: url) }
+        }
     }
 
     private func dismissKeyboard() {
